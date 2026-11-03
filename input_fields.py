@@ -8,6 +8,8 @@ from template_engine import list_attractions, load_attraction
 from promotional_brief import (CATEGORIES, CASE_CATEGORIES, CATEGORY_GUIDANCE, STYLES,
     PURPOSES, AUDIENCES, STAGES, DURATIONS, case_highlights, parse_highlights, build_detailed_brief)
 
+from platform_profiles import PLATFORM_PROFILES, DEFAULT_PLATFORM, platform_label
+
 CUSTOM = '其他场所（填写资料）'
 CASES = {c['name']: c for c in list_attractions()}
 
@@ -31,6 +33,10 @@ def _change_example():
 def render_input_fields(language="中文"):
     from input_labels import LocalizedFields
     ui = LocalizedFields(language)
+    st.session_state.setdefault('platform', DEFAULT_PLATFORM)
+    st.selectbox('发布平台' if language == '中文' else 'Publishing platform',
+                 list(PLATFORM_PROFILES), key='platform',
+                 format_func=lambda value: platform_label(value, language))
     st.session_state.setdefault('input_category', '古镇／历史街区')
     ui.selectbox('景区类型', CATEGORIES, key='input_category', on_change=_change_category)
     category = st.session_state['input_category']
@@ -107,7 +113,8 @@ def render_input_fields(language="中文"):
         return build_detailed_brief(name=data['name'] if data else name, category=category,
             style=style, purpose=purpose, audience=audience, highlights=highlights,
             selected=selected, primary=primary, data=data, introduction=introduction,
-            supplement=supplement, stage=stage, duration=duration, event=event)
+            supplement=supplement, stage=stage, duration=duration, event=event,
+            platform=st.session_state['platform'])
     except ValueError as exc:
         ui.warning(str(exc))
         return None

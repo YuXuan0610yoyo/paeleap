@@ -1,7 +1,8 @@
-"""Research-backed metadata only; not yet wired into the app.
+"""Research-backed platform metadata and display labels.
 
 Recommendations are product defaults, not upload validators. None means
 unverified, never unlimited. API evidence must not constrain manual publishing.
+Selection and identity are wired into the app; copy and size adaptation follow later.
 See docs/week4_platform_requirements.md for sources, scope and gaps.
 """
 
@@ -87,3 +88,8 @@ PLATFORM_PROFILES = {
         "unverified_manual_limits": ["title_length", "body_length", "image_count", "image_size_byte_definition"],
     },
 }
+
+
+def platform_label(platform=DEFAULT_PLATFORM, language="中文"):
+    """Display a stable platform ID in the current interface language."""
+    return PLATFORM_PROFILES[platform]['labels']['en' if language == 'English' else 'zh']

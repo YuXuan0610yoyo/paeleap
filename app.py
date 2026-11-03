@@ -12,6 +12,7 @@ from ui_workspaces import render_navigation
 from ui_results import render_results
 from local_photo import decode_photo, clear_photo_if_removed, remove_photo
 from input_fields import render_input_fields
+from platform_profiles import DEFAULT_PLATFORM, platform_label
 from offline_studio import preserve_inputs, has_draft_edits, create_offline_preview
 from studio_state import save_caption_output, retain_legacy_plans
 from engine import (CATEGORY_CONFIG, DESTINATIONS, STYLES, plan, recommend_style,
@@ -190,6 +191,12 @@ workspace = render_navigation(cn)
 if 'result' in st.session_state:
     retain_legacy_plans(st.session_state['result'])
 preserve_inputs()
+selected_platform = st.session_state.get('platform', DEFAULT_PLATFORM)
+saved_plan = st.session_state.get('result', {}).get('text_plan', {})
+if saved_plan and saved_plan.get('platform', DEFAULT_PLATFORM) != selected_platform:
+    st.warning(label(
+        'Platform changed. Your saved draft is still for ' + platform_label(saved_plan.get('platform', DEFAULT_PLATFORM), lang) + '. Return to Caption and generate again to update it; your edits are kept.',
+        '发布平台已改变，当前草稿仍属于' + platform_label(saved_plan.get('platform', DEFAULT_PLATFORM), lang) + '。请回文案页重新生成；手动修改会保留。'))
 if workspace == 'text':
     st.markdown(f'<div class="heading-box"><div class="panel-title"><span>01</span>{escape(t["workspace"])}</div><div class="panel-sub">{escape(t["workspace_sub"])}</div></div>', unsafe_allow_html=True)
     input_column, result_column = st.columns([1.05, 1], gap='medium')
@@ -204,7 +211,7 @@ if workspace == 'text':
         if st.session_state.get('pending_offline_brief') != brief:
             st.session_state.pop('pending_offline_brief', None)
         previous = st.session_state.get('result', {})
-        if previous.get('text_plan') and brief != {k: v for k, v in previous['text_plan'].items() if k != 'language'}:
+        if previous.get('text_plan') and brief != {'platform': DEFAULT_PLATFORM, **{k: v for k, v in previous['text_plan'].items() if k != 'language'}}:
             st.info(label('Inputs changed. Generate again to update the saved draft.', '输入已改变，当前结果仍保留旧文案；点击生成更新。'))
         if generate_column.button(t['generate'], key='generate_caption', type='primary', width='stretch', disabled=brief is None):
             if has_draft_edits(previous):
@@ -212,6 +219,7 @@ if workspace == 'text':
             else:
                 try:
                     create_offline_preview(brief)
+                    st.rerun()
                 except Exception as exc:
                     st.error(safe_error(exc, lang))
         if st.session_state.get('pending_offline_brief'):

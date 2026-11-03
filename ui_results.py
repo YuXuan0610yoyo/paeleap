@@ -4,6 +4,7 @@ from io import BytesIO
 from zipfile import ZipFile
 from xiaohongshu_templates import ordered_photos
 import streamlit as st
+from platform_profiles import DEFAULT_PLATFORM, platform_label
 from image_brief import context_fingerprint
 from image_workspace import selected_caption, STYLE_LABELS
 
@@ -14,6 +15,9 @@ def render_results(workspace, field, label, t, lang):
     image = result.get('image')
     photos = ordered_photos(result.get('text_plan',{}),result.get('photos',[]))
     text_plan = result.get('text_plan', result.get('plan', {}))
+    saved_platform = text_plan.get('platform', DEFAULT_PLATFORM)
+    if variants:
+        st.caption(label('Draft platform: ', '草稿平台：') + platform_label(saved_platform, lang))
     image_plan = result.get('image_plan', result.get('plan', {}))
     if workspace == 'text':
         st.markdown('### ' + label('Caption results', '文案结果'))
@@ -30,7 +34,7 @@ def render_results(workspace, field, label, t, lang):
         index = st.session_state.get('form_caption_variant', 0)
     with st.container(key='preview_stage' if workspace == 'preview' else 'workspace_results'):
         if workspace == 'preview' and (variants or image is not None):
-            st.markdown('<div class="preview-label">' + label('REDNOTE · POST PREVIEW', '小红书 · 图文预览') + '</div>', unsafe_allow_html=True)
+            st.markdown('<div class="preview-label">' + escape(platform_label(saved_platform, lang)) + label(' · POST PREVIEW', ' · 图文预览') + '</div>', unsafe_allow_html=True)
             attraction = text_plan.get('attraction') or image_plan.get('attraction', '')
             st.markdown('<div class="post-masthead"><span class="avatar">p.</span><div>' +
                         label('PAELEAP Travel Notes', 'PAELEAP 旅行手记') + '<small>' +
@@ -68,7 +72,7 @@ def render_results(workspace, field, label, t, lang):
                     st.text(caption)
                     st.text(hashtags)
                 st.download_button(t['download_copy'], title + '\n\n' + caption + '\n\n' + hashtags,
-                                   f'caption_{index + 1}.txt', key=f'download_{index}', width='stretch')
+                                   f'{saved_platform}_caption_{index + 1}.txt', key=f'download_{index}', width='stretch')
             else:
                 st.caption(label('No caption yet. Generate one in Caption.', '暂无文案，请前往文案工作区生成。'))
         if workspace in ('image', 'preview') and image is not None:

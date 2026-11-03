@@ -2,7 +2,7 @@
 import streamlit as st
 from template_engine import generate_drafts
 
-INPUT_KEYS = ('input_category', 'example', 'place', 'focus_choices', 'primary_focus',
+INPUT_KEYS = ('platform', 'input_category', 'example', 'place', 'focus_choices', 'primary_focus',
               'input_case_signature', 'keywords', 'text_style', 'copy_purpose',
               'target_audience', 'learning_stage', 'visit_duration', 'custom_introduction',
               'custom_highlights', 'event_name', 'event_date', 'event_location', 'event_participation')

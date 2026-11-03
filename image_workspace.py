@@ -1,4 +1,5 @@
 """Offline image planning UI; all choices feed image_brief, no provider calls."""
+from platform_profiles import DEFAULT_PLATFORM, platform_label
 import hashlib
 import streamlit as st
 from image_brief import VISUAL_STYLES, DEFAULTS, build_image_brief
@@ -14,7 +15,7 @@ MOODS = {
     'warm': ('温暖柔和', 'Warm & soft', {'light': 'golden', 'palette': 'warm'}),
     'calm': ('安静自然', 'Calm & natural', {'light': 'overcast', 'palette': 'natural'}),
 }
-SIZES = {'3:4': ('竖图 · 小红书封面', 'Portrait · cover'), '1:1': ('方图 · 图文配图', 'Square · post'), '16:9': ('横图 · 宽幅展示', 'Landscape · wide')}
+SIZES = {'3:4': ('竖图 · 封面', 'Portrait · cover'), '1:1': ('方图 · 图文配图', 'Square · post'), '16:9': ('横图 · 宽幅展示', 'Landscape · wide')}
 
 def simple_selections(style, mood, ratio, has_photo=False, use_portrait=False):
     return {**DEFAULTS, **MOODS[mood][2], 'ratio': ratio,
@@ -43,10 +44,11 @@ def render_image_workspace(field, label, lang):
     brief=result.get('text_plan',{})
     st.markdown('### '+label('Plan your image','设计配图'))
     st.caption(label('Choose a style and a mood. We will match the details for you.',
-                     '沿用小红书模板，选择照片对应的看点，自动安排图片顺序。'))
+                     '沿用文案资料，选择照片对应的看点，自动安排图片顺序。'))
     if not brief:
         st.info(label('Generate a caption first so the place and key details carry over.', '先生成文案，景点、推广重点和目标人群会自动带入。'))
         return
+    st.caption(label('Draft platform: ', '草稿平台：') + platform_label(brief.get('platform', DEFAULT_PLATFORM), lang))
     subjects=list(dict.fromkeys(h['label'] for h in brief.get('highlights',[]) if h.get('label')))
     subjects=subjects or [brief['attraction']]
     context=brief['attraction']+'|'+str(brief.get('selected_fact_ids',[]))

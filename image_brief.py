@@ -1,4 +1,5 @@
 """Pure, deterministic image briefs. No network, model calls or image manipulation."""
+from platform_profiles import DEFAULT_PLATFORM
 import hashlib
 import json
 from pathlib import Path
@@ -42,7 +43,7 @@ def build_image_brief(brief, caption, style_id='natural', *, selections=None, su
     highlights=brief.get('highlights',[])
     facts=[{'id':h.get('id',''), 'text':h.get('text',''), 'source':h.get('source','用户填写，未独立核验')} for h in highlights]
     # Content stays quoted data; caption edits never supersede factual constraints.
-    content=dict(attraction=brief['attraction'],category=brief.get('category',''),purpose=brief.get('purpose',''),audience=brief.get('audience',''),subject=subject,
+    content=dict(platform=brief.get('platform', DEFAULT_PLATFORM),attraction=brief['attraction'],category=brief.get('category',''),purpose=brief.get('purpose',''),audience=brief.get('audience',''),subject=subject,
                  selected_highlights=[h.get('label','') for h in highlights],facts=facts,caption=caption,extra_requirements=notes,
                  user_supplied_context={'introduction':brief.get('introduction',''),'supplement':brief.get('supplement',''),'event':brief.get('event',{})})
     lines=[f'文旅配图方案 V1 — {style["name"]}',
@@ -57,6 +58,6 @@ def build_image_brief(brief, caption, style_id='natural', *, selections=None, su
     if choices['people']=='portrait': lines.append('人物参考图：'+json.dumps(portrait,ensure_ascii=False))
     boundaries=['不虚构或改造地标、文物纹饰、活动项目、路线、票价、时间、奖项或游客经历。','画面不生成文字、乱码、水印、标识或活动日期；标题及打卡贴纸由后期排版添加。','不复制研究笔记的图片、人物或构图细节；借鉴视觉任务与组织方式。','生成结果仅为概念图；照片风格化与人物合成也不能作为真实到访证明。']+brief.get('boundaries',[])
     lines.append('约束：\n'+'\n'.join('- '+x for x in boundaries))
-    return dict(version='visual_brief_v1',status='prompt_only_not_generated',style_id=style_id,style_name=style['name'],attraction=brief['attraction'],selections=choices,subject=subject,notes=notes,content=content,
+    return dict(platform=brief.get('platform', DEFAULT_PLATFORM),version='visual_brief_v1',status='prompt_only_not_generated',style_id=style_id,style_name=style['name'],attraction=brief['attraction'],selections=choices,subject=subject,notes=notes,content=content,
                 context_fingerprint=context_fingerprint(brief,caption),reference=reference if choices['mode']=='reference' else None,portrait=portrait if choices['people']=='portrait' else None,
                 image_prompt='\n\n'.join(lines),boundaries=boundaries,references=style['references'])

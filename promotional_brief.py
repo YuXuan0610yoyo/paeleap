@@ -4,6 +4,7 @@ The input UI hands a serializable brief to this module; menus/layout can reuse i
 User-supplied facts are recorded separately from the existing sourced case data.
 """
 import re
+from platform_profiles import DEFAULT_PLATFORM, PLATFORM_PROFILES
 
 CATEGORIES = ['自然景观', '博物馆', '研学基地', '古镇／历史街区', '主题乐园']
 CASE_CATEGORIES = {'自然风光': '自然景观', '古镇': '古镇／历史街区', '主题乐园': '主题乐园'}
@@ -69,7 +70,9 @@ def parse_highlights(raw):
 
 def build_detailed_brief(*, name, category, style, purpose, audience, highlights,
                          selected, primary, data=None, introduction='', supplement='',
-                         stage='不限定', duration='不限定', event=None):
+                         stage='不限定', duration='不限定', event=None, platform=DEFAULT_PLATFORM):
+    if platform not in PLATFORM_PROFILES:
+        raise ValueError('请选择有效的发布平台。')
     for value, choices, label in [(category, CATEGORIES, '景区类型'), (style, STYLES, '文本风格'),
                                   (purpose, PURPOSES, '推文目的'), (audience, AUDIENCES, '目标人群')]:
         if value not in choices:
@@ -114,7 +117,7 @@ def build_detailed_brief(*, name, category, style, purpose, audience, highlights
             facts.append(dict(id='EVENT_' + k, text=value, source='用户提供活动信息，未独立核验', provenance='user_supplied'))
             extra_ids.append('EVENT_' + k)
     return dict(
-        schema_version='detailed_inputs_v1', attraction=name, category=category,
+        schema_version='detailed_inputs_v1', platform=platform, attraction=name, category=category,
         text_style=style, purpose=purpose, audience=audience, learning_stage=stage,
         visit_duration=duration, introduction=introduction, supplement=supplement, event=details,
         highlights=chosen, primary_fact_id=chosen[0]['id'], selected_fact_ids=[h['id'] for h in chosen],

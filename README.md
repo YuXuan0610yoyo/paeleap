@@ -1,5 +1,18 @@
 # PAELEAP Xiaohongshu Post Generator
 
+## Current demo: Wuzhen Creator Studio
+
+Continue development from `main`. To run the latest demo with Python 3.11 or 3.12:
+
+```sh
+python -m pip install -r requirements.txt
+python -m streamlit run app.py
+```
+
+Open `http://localhost:8501/?demo=wuzhen` and select 乌镇西栅 (Wuzhen Xizha). The demo includes caption generation, bundled cover choices, platform preview, and simulated publishing. It runs offline without API keys.
+
+## Earlier studio setup
+
 Streamlit tourism studio with editable bilingual captions, Cloudflare concept imagery and a local slideshow video. It does not verify travel facts or publish posts.
 
 ## Run locally

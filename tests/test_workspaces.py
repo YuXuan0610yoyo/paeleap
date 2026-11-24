@@ -10,7 +10,9 @@ def studio(monkeypatch):
         pytest.fail('Offline studio attempted a model API call')
     for name in ('generate_caption_variants', 'generate_cloudflare_image', 'render_slideshow'):
         monkeypatch.setattr(engine, name, forbidden)
-    return AppTest.from_file(str(Path(__file__).resolve().parents[1] / 'app.py')).run()
+    app = AppTest.from_file(str(Path(__file__).resolve().parents[1] / 'app.py')).run()
+    app.radio(key='language').set_value('English').run()
+    return app.button(key='enter_studio').click().run()
 
 def navigate(a, workspace):
     a.radio(key='workspace').set_value(workspace).run()
@@ -99,11 +101,12 @@ def test_generation_failure_keeps_existing_preview(studio, monkeypatch):
     assert a.session_state['result']['variants'] == original
     assert len(a.error)==1 and not a.exception
 
-def test_next_back_workflow_requires_caption_and_keeps_preview(studio):
+def test_workspace_navigation_keeps_preview_without_caption_next_button(studio):
     a=studio
-    assert a.button(key='workflow_next').disabled
+    assert all(button.key != 'workflow_next' for button in a.button)
     a.button(key='generate_caption').click().run()
-    a.button(key='workflow_next').click().run()
+    assert all(button.key != 'workflow_next' for button in a.button)
+    a.radio(key='workspace').set_value('image').run()
     assert a.radio(key='workspace').value == 'image'
     assert a.button(key='generate_image').disabled
     a.button(key='workflow_next').click().run()
@@ -113,7 +116,7 @@ def test_next_back_workflow_requires_caption_and_keeps_preview(studio):
     a.button(key='workflow_back').click().run()
     a.button(key='workflow_back').click().run()
     assert a.radio(key='workspace').value == 'text'
-    a.button(key='workflow_next').click().run()
+    a.radio(key='workspace').set_value('image').run()
     a.button(key='workflow_next').click().run()
     assert a.text_input(key='draft_0_title').value == '我的最终标题'
 
@@ -131,7 +134,7 @@ def test_language_switch_translates_controls_and_preserves_choices(studio):
         assert a.selectbox(key='text_style').label == ('文本风格' if lang=='中文' else 'Writing tone')
         assert not a.exception
     a.button(key='generate_caption').click().run()
-    a.button(key='workflow_next').click().run()
+    a.radio(key='workspace').set_value('image').run()
     a.radio(key='language').set_value('English').run()
     assert a.radio(key='workspace').value == 'image'
     a.button(key='workflow_next').click().run()

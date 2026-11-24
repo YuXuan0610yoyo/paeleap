@@ -1,0 +1,84 @@
+/* Landing page only. The creator keeps its own layout and widget state. */
+body:has(.st-key-landing_header) [data-testid="stAppViewContainer"],
+body:has(.st-key-landing_header) [data-testid="stMain"] {
+  background: #fff;
+  color: #071c46;
+}
+body:has(.st-key-landing_header) .block-container {
+  max-width: none;
+  padding: 0 0 24px;
+}
+body:has(.st-key-landing_header) [data-testid="stHeader"] { display: none; }
+body:has(.st-key-landing_header) [data-testid="stMainBlockContainer"] > div { gap: 0; }
+.st-key-landing_header {
+  background: #061a43;
+  padding: 8px 40px;
+}
+.st-key-landing_header [data-testid="stHorizontalBlock"] { flex-wrap: nowrap; align-items: center; }
+.st-key-landing_header [data-testid="stColumn"]:first-child { flex: 1 1 auto !important; width: auto !important; min-width: 0 !important; }
+.st-key-landing_header [data-testid="stColumn"]:last-child { flex: 0 0 144px !important; width: 144px !important; min-width: 144px !important; }
+.landing-logo { display: block; width: 110px; height: 56px; object-fit: contain; }
+.st-key-landing_header .st-key-language [role="radiogroup"] {
+  background: #061a43;
+  border: 1px solid #8292b1;
+}
+.st-key-landing_header .st-key-language [role="radiogroup"] label { color: #fff; }
+.st-key-landing_header .st-key-language [data-testid="stRadioOption"] > div > div:first-child { display: none; }
+.st-key-landing_header .st-key-language [role="radiogroup"] label:has(input:checked) {
+  background: #0757ef;
+  color: #fff;
+}
+.landing-intro { text-align: center; padding: clamp(48px, 6vh, 72px) 24px 0; }
+.landing-intro h1 {
+  color: #071d48;
+  font-family: "Songti SC", "Noto Serif SC", serif;
+  font-weight: 400;
+  font-size: clamp(40px, 5.2vw, 76px);
+  line-height: 1.25;
+  letter-spacing: .02em;
+  margin: 0;
+}
+.landing-intro p {
+  color: #586b88;
+  font-family: "Songti SC", "Noto Serif SC", serif;
+  font-size: clamp(16px, 1.5vw, 21px);
+  line-height: 1.6;
+  margin: 20px 0 24px;
+}
+.st-key-landing_action { max-width: 320px; margin: 0 auto; padding: 0 24px; }
+.st-key-landing_action .stButton > button[kind="primary"] {
+  min-height: 56px;
+  background: #0757ef !important;
+  border-radius: 8px;
+  font-size: 17px;
+}
+.st-key-landing_action .stButton > button[kind="primary"]:hover { background: #0049d5 !important; }
+.landing-gallery { overflow: hidden; width: 100%; margin-top: clamp(36px, 5vh, 56px); padding: 12px 0; }
+.landing-rail { display: flex; width: max-content; animation: landing-scroll 50s linear infinite; }
+.landing-rail-group { display: flex; gap: 16px; padding-right: 16px; }
+.landing-photo {
+  width: clamp(180px, 19vw, 300px);
+  height: clamp(240px, 28vw, 360px);
+  flex: none;
+  border-radius: 18px;
+  background-position: center;
+  background-size: cover;
+  transform: rotate(-2deg);
+}
+.landing-photo:nth-child(even) { transform: rotate(2deg); }
+.landing-gallery:hover .landing-rail, .landing-gallery:focus-within .landing-rail { animation-play-state: paused; }
+@keyframes landing-scroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+.landing-credits { color: #667388; padding: 8px 40px 16px; font-size: 12px; }
+.landing-credits summary { cursor: pointer; width: fit-content; }
+.landing-credits a { color: #345b9c; }
+.landing-credits p { line-height: 1.8; }
+@media (prefers-reduced-motion: reduce) { .landing-rail { animation: none; } }
+@media (max-width: 700px) {
+  .st-key-landing_header { padding: 8px 20px; }
+  .landing-logo { width: 88px; height: 48px; }
+  .landing-intro { padding-top: 48px; }
+  .landing-intro h1 { font-size: clamp(36px, 8vw, 52px); }
+  .landing-intro p { font-size: 16px; }
+  .landing-photo { width: 168px; height: 232px; border-radius: 12px; }
+  .landing-credits { padding-inline: 20px; }
+}

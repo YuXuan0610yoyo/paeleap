@@ -1,0 +1,150 @@
+/* FlowButton-inspired motion for native Streamlit action and download buttons. */
+body :is(.st-key-landing_header, .st-key-creator_header) { --flow-fill: #071c46; }
+body:has(.st-key-landing_header), body:has(.st-key-creator_header) {
+  --flow-fill: #071c46;
+  --flow-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M4 12h15m-6-6 6 6-6 6' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+body:has(.st-key-landing_header) .stElementContainer:not(.st-key-home_logo) > :is(.stButton, .stDownloadButton) > button:not(:disabled),
+body:has(.st-key-creator_header) .stElementContainer:not(.st-key-home_logo) > :is(.stButton, .stDownloadButton) > button:not(:disabled) {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  min-height: 44px;
+  padding: 9px 42px 9px 28px !important;
+  border: 1.5px solid #a5b1c2 !important;
+  border-radius: 100px !important;
+  background: transparent !important;
+  color: #10264a !important;
+  transition: border-color 600ms cubic-bezier(.23,1,.32,1), border-radius 600ms cubic-bezier(.23,1,.32,1), transform 120ms ease-out;
+}
+body:has(.st-key-landing_header) .stElementContainer:not(.st-key-home_logo) > .stButton > button[kind="primary"]:not(:disabled),
+body:has(.st-key-creator_header) .stElementContainer:not(.st-key-home_logo) > .stButton > button[kind="primary"]:not(:disabled) {
+  background: #0757ef !important;
+  border-color: #0757ef !important;
+  color: #fff !important;
+}
+body:has(.st-key-landing_header) .stElementContainer:not(.st-key-home_logo) > :is(.stButton, .stDownloadButton) > button:not(:disabled)::before,
+body:has(.st-key-creator_header) .stElementContainer:not(.st-key-home_logo) > :is(.stButton, .stDownloadButton) > button:not(:disabled)::before {
+  content: "";
+  position: absolute;
+  left: 50%; top: 50%;
+  width: 150%; aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--flow-fill);
+  transform: translate(-50%, -50%) scale(0);
+  transition: transform 800ms cubic-bezier(.19,1,.22,1);
+  z-index: -1;
+  pointer-events: none;
+}
+body:has(.st-key-landing_header) .stElementContainer:not(.st-key-home_logo) > :is(.stButton, .stDownloadButton) > button:not(:disabled)::after,
+body:has(.st-key-creator_header) .stElementContainer:not(.st-key-home_logo) > :is(.stButton, .stDownloadButton) > button:not(:disabled)::after {
+  content: "";
+  position: absolute;
+  right: 15px; top: 50%;
+  width: 18px; height: 18px;
+  background: currentColor;
+  mask: var(--flow-arrow) center / contain no-repeat;
+  transform: translate(0, -50%);
+  transition: transform 800ms cubic-bezier(.34,1.56,.64,1), opacity 500ms ease;
+  pointer-events: none;
+}
+body:has(.st-key-landing_header) .stElementContainer:not(.st-key-home_logo) > :is(.stButton, .stDownloadButton) > button:not(:disabled) p,
+body:has(.st-key-creator_header) .stElementContainer:not(.st-key-home_logo) > :is(.stButton, .stDownloadButton) > button:not(:disabled) p {
+  position: relative;
+  color: inherit !important;
+  transition: transform 800ms ease;
+}
+body:has(.st-key-landing_header) .stElementContainer:not(.st-key-home_logo) > :is(.stButton, .stDownloadButton) > button:not(:disabled) > div:first-child::before,
+body:has(.st-key-creator_header) .stElementContainer:not(.st-key-home_logo) > :is(.stButton, .stDownloadButton) > button:not(:disabled) > div:first-child::before {
+  content: "";
+  position: absolute;
+  left: 16px; top: 50%;
+  width: 18px; height: 18px;
+  background: currentColor;
+  mask: var(--flow-arrow) center / contain no-repeat;
+  transform: translate(-14px, -50%);
+  opacity: 0;
+  transition: transform 800ms cubic-bezier(.34,1.56,.64,1), opacity 400ms ease;
+  pointer-events: none;
+}
+body:has(.st-key-landing_header) .stElementContainer:not(.st-key-home_logo) > :is(.stButton, .stDownloadButton) > button:not(:disabled):is(:hover, :focus-visible),
+body:has(.st-key-creator_header) .stElementContainer:not(.st-key-home_logo) > :is(.stButton, .stDownloadButton) > button:not(:disabled):is(:hover, :focus-visible) {
+  border-color: transparent !important;
+  border-radius: 12px !important;
+  color: #fff !important;
+}
+body:has(.st-key-landing_header) .stElementContainer:not(.st-key-home_logo) > :is(.stButton, .stDownloadButton) > button:not(:disabled):is(:hover, :focus-visible)::before,
+body:has(.st-key-creator_header) .stElementContainer:not(.st-key-home_logo) > :is(.stButton, .stDownloadButton) > button:not(:disabled):is(:hover, :focus-visible)::before { transform: translate(-50%, -50%) scale(1); }
+body:has(.st-key-landing_header) .stElementContainer:not(.st-key-home_logo) > :is(.stButton, .stDownloadButton) > button:not(:disabled):is(:hover, :focus-visible)::after,
+body:has(.st-key-creator_header) .stElementContainer:not(.st-key-home_logo) > :is(.stButton, .stDownloadButton) > button:not(:disabled):is(:hover, :focus-visible)::after { transform: translate(32px, -50%); opacity: 0; }
+body:has(.st-key-landing_header) .stElementContainer:not(.st-key-home_logo) > :is(.stButton, .stDownloadButton) > button:not(:disabled):is(:hover, :focus-visible) p,
+body:has(.st-key-creator_header) .stElementContainer:not(.st-key-home_logo) > :is(.stButton, .stDownloadButton) > button:not(:disabled):is(:hover, :focus-visible) p { transform: translateX(8px); color: #fff !important; }
+body:has(.st-key-landing_header) .stElementContainer:not(.st-key-home_logo) > :is(.stButton, .stDownloadButton) > button:not(:disabled):is(:hover, :focus-visible) > div:first-child::before,
+body:has(.st-key-creator_header) .stElementContainer:not(.st-key-home_logo) > :is(.stButton, .stDownloadButton) > button:not(:disabled):is(:hover, :focus-visible) > div:first-child::before { opacity: 1; transform: translate(0, -50%); background: #fff; }
+body:has(.st-key-creator_header) .stElementContainer.st-key-workflow_back > .stButton > button:not(:disabled) {
+  padding-inline: 42px !important;
+}
+body:has(.st-key-creator_header) .stElementContainer.st-key-workflow_back > .stButton > button:not(:disabled)::after,
+body:has(.st-key-creator_header) .stElementContainer.st-key-workflow_back > .stButton > button:not(:disabled):is(:hover, :focus-visible)::after {
+  left: 15px;
+  right: auto;
+  transform: translateY(-50%) scaleX(-1);
+  opacity: 1;
+}
+body:has(.st-key-creator_header) .st-key-workflow_back button:not(:disabled) > div:first-child::before { content: none; }
+body:has(.st-key-creator_header) .stElementContainer.st-key-workflow_back > .stButton > button:not(:disabled):is(:hover, :focus-visible) p { transform: none; }
+body:has(.st-key-landing_header) .stElementContainer:not(.st-key-home_logo) > :is(.stButton, .stDownloadButton) > button:not(:disabled):active,
+body:has(.st-key-creator_header) .stElementContainer:not(.st-key-home_logo) > :is(.stButton, .stDownloadButton) > button:not(:disabled):active { transform: scale(.97); }
+body:has(.st-key-landing_header) .stElementContainer:not(.st-key-home_logo) > :is(.stButton, .stDownloadButton) > button:not(:disabled):focus-visible,
+body:has(.st-key-creator_header) .stElementContainer:not(.st-key-home_logo) > :is(.stButton, .stDownloadButton) > button:not(:disabled):focus-visible { outline: 3px solid #68a7ff; outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) {
+  body:has(.st-key-landing_header) :is(.stButton,.stDownloadButton) > button,
+  body:has(.st-key-creator_header) :is(.stButton,.stDownloadButton) > button,
+  body:has(.st-key-landing_header) :is(.stButton,.stDownloadButton) > button::before,
+  body:has(.st-key-creator_header) :is(.stButton,.stDownloadButton) > button::before,
+  body:has(.st-key-landing_header) :is(.stButton,.stDownloadButton) > button::after,
+  body:has(.st-key-creator_header) :is(.stButton,.stDownloadButton) > button::after,
+  body:has(.st-key-landing_header) :is(.stButton,.stDownloadButton) > button p,
+  body:has(.st-key-creator_header) :is(.stButton,.stDownloadButton) > button p,
+  body:has(.st-key-landing_header) :is(.stButton,.stDownloadButton) > button > div:first-child::before,
+  body:has(.st-key-creator_header) :is(.stButton,.stDownloadButton) > button > div:first-child::before { transition: none !important; }
+}
+/* The creator's main actions keep the reference's rectangular resting shape,
+   while retaining the FlowButton fill and arrow movement on interaction. */
+body:has(.st-key-creator_header) .st-key-caption_actions .stElementContainer:not(.st-key-home_logo) > .stButton > button { border-radius: 9px !important; }
+body:has(.st-key-creator_header) .st-key-caption_actions .stButton > button:disabled { background: #f1f3f7 !important; color: #7a8799 !important; border: 1px solid #d5deea !important; }
+body:has(.st-key-creator_header) .st-key-wuzhen_caption_actions .stElementContainer.st-key-caption_to_image > .stButton > button {
+  border-radius: 8px !important;
+  padding-inline: 12px !important;
+}
+body:has(.st-key-creator_header) .st-key-wuzhen_caption_actions .stElementContainer.st-key-caption_to_image > .stButton > button:not(:disabled)::after,
+body:has(.st-key-creator_header) .st-key-wuzhen_caption_actions .stElementContainer.st-key-caption_to_image > .stButton > button:not(:disabled) > div:first-child::before { content: none; }
+body:has(.st-key-creator_header) .st-key-wuzhen_caption_actions .stElementContainer.st-key-caption_to_image > .stButton > button:not(:disabled):is(:hover, :focus-visible) p { transform: none; }
+
+body:has(.st-key-creator_header) .st-key-wuzhen_image_cards .stElementContainer > .stButton > button:not(:disabled) {
+  padding-inline: 16px !important;
+}
+body:has(.st-key-creator_header) .st-key-wuzhen_image_cards .stElementContainer > .stButton > button:not(:disabled)::after,
+body:has(.st-key-creator_header) .st-key-wuzhen_image_cards .stElementContainer > .stButton > button:not(:disabled) > div:first-child::before {
+  content: none;
+}
+body:has(.st-key-creator_header) .st-key-wuzhen_image_cards .stElementContainer > .stButton > button:not(:disabled):is(:hover, :focus-visible) p {
+  transform: none;
+}
+.st-key-wuzhen_cover_selected .stButton > button:disabled {
+  min-height: 44px;
+  border-radius: 100px;
+  color: #0757ef !important;
+  border-color: #cbdcff !important;
+  background: #edf4ff !important;
+}
+body:has(.st-key-wuzhen_image_cards) .st-key-workflow_next .stButton > button:disabled {
+  min-height: 44px;
+  border: 1.5px solid #c5d2e4 !important;
+  border-radius: 100px;
+  background: #e7eef8 !important;
+  color: #425673 !important;
+}
+body:has(.st-key-wuzhen_image_cards) .st-key-workflow_next .stButton > button:disabled p {
+  color: inherit !important;
+}

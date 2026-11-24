@@ -40,7 +40,9 @@ def test_ui_state_translation_caption_edits_and_reference_gate(monkeypatch):
     monkeypatch.setattr(engine,'generate_cloudflare_image',lambda *a,**k:pytest.fail('No image API allowed'))
     monkeypatch.setattr(engine,'generate_caption_variants',lambda *a,**k:pytest.fail('No text API allowed'))
     a=AppTest.from_file(str(ROOT/'app.py')).run()
-    a.button(key='generate_caption').click().run();a.button(key='workflow_next').click().run()
+    a.radio(key='language').set_value('English').run()
+    a.button(key='enter_studio').click().run()
+    a.button(key='generate_caption').click().run();a.radio(key='workspace').set_value('image').run()
     a.radio(key='image_template').set_value('heritage').run()
     a.selectbox(key='image_mood').select('warm').run()
     a.selectbox(key='image_ratio').select('1:1').run()
@@ -64,13 +66,15 @@ def test_ui_state_translation_caption_edits_and_reference_gate(monkeypatch):
 def test_new_attraction_clears_old_photos_and_subject():
     from PIL import Image
     a=AppTest.from_file(str(ROOT/'app.py')).run()
-    a.button(key='generate_caption').click().run();a.button(key='workflow_next').click().run()
+    a.radio(key='language').set_value('English').run()
+    a.button(key='enter_studio').click().run()
+    a.button(key='generate_caption').click().run();a.radio(key='workspace').set_value('image').run()
     a.selectbox(key='image_subject_choice').select('custom').run()
     a.text_input(key='image_subject').set_value('乌镇的个人取景').run()
     a.session_state['result']['image']=Image.new('RGB',(5,5))
     a.button(key='workflow_back').click().run()
     a.selectbox(key='input_category').select('自然景观').run()
-    a.button(key='generate_caption').click().run();a.button(key='workflow_next').click().run()
+    a.button(key='generate_caption').click().run();a.radio(key='workspace').set_value('image').run()
     assert a.session_state['result'].get('image') is None
     assert '乌镇' not in a.selectbox(key='image_subject_choice').value
     assert '乌镇' not in a.session_state['result']['visual_brief']['image_prompt']
@@ -93,11 +97,13 @@ def test_simple_choices_map_to_instructions_and_photos(brief):
 def test_simple_ui_hides_technical_tools_and_ignores_legacy_options():
     from PIL import Image
     a=AppTest.from_file(str(ROOT/'app.py')).run()
+    a.radio(key='language').set_value('English').run()
+    a.button(key='enter_studio').click().run()
     a.button(key='generate_caption').click().run()
     a.session_state['form_image_treatment']='cutout'
     a.session_state['form_image_light']='night'
     a.session_state['result']['image']=Image.new('RGB',(5,5))
-    a.button(key='workflow_next').click().run()
+    a.radio(key='workspace').set_value('image').run()
     a.radio(key='image_template').set_value('heritage').run()
     p=a.session_state['result']['visual_brief']
     assert p['selections']['mode']=='reference'

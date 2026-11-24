@@ -2,7 +2,7 @@
 
 Recommendations are product defaults, not upload validators. None means
 unverified, never unlimited. API evidence must not constrain manual publishing.
-Selection and identity are wired into the app; copy and size adaptation follow later.
+Selection, copy and photo fitting use these project recommendations.
 See docs/week4_platform_requirements.md for sources, scope and gaps.
 """
 

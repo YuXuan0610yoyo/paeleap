@@ -12,7 +12,6 @@ SLIDES = (
     ('Leifeng Pagoda', '雷峰塔', 'Leifeng Pagoda 20191102.jpg', 'xiquinhosilva', 'by/2.0'),
 )
 
-
 @lru_cache(maxsize=3)
 def bundled_photo(index):
     """Ship the same licensed photos so blocked third-party hosts cannot blank the gallery."""

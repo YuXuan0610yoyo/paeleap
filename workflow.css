@@ -24,13 +24,9 @@ h1,h2,h3,h4{overflow-wrap:anywhere;text-wrap:balance}
  .st-key-workflow_next button,.st-key-workflow_back button{min-height:48px;white-space:normal}
 }
 
-/* The two caption actions always share a baseline, including narrow screens. */
-.st-key-caption_actions [data-testid="stHorizontalBlock"]{flex-direction:row;flex-wrap:nowrap;align-items:stretch;gap:16px}
-.st-key-caption_actions [data-testid="stColumn"]{min-width:0!important;flex:1 1 0!important;width:0!important}
-.st-key-caption_actions button{min-height:52px;height:100%;white-space:normal}
+.st-key-caption_actions button{min-height:52px;white-space:normal}
 .st-key-caption_actions button p{line-height:1.4}
 @media(max-width:760px){
- .st-key-caption_actions [data-testid="stHorizontalBlock"]{gap:10px}
  .st-key-caption_actions button{height:56px;padding:8px}
  .st-key-caption_actions button p{font-size:13px!important}
 }

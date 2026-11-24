@@ -4,10 +4,12 @@ The input UI hands a serializable brief to this module; menus/layout can reuse i
 User-supplied facts are recorded separately from the existing sourced case data.
 """
 import re
+from attraction_catalog import CATEGORY_TOPICS
 from platform_profiles import DEFAULT_PLATFORM, PLATFORM_PROFILES
 
-CATEGORIES = ['自然景观', '博物馆', '研学基地', '古镇／历史街区', '主题乐园']
-CASE_CATEGORIES = {'自然风光': '自然景观', '古镇': '古镇／历史街区', '主题乐园': '主题乐园'}
+CATEGORIES = list(CATEGORY_TOPICS)
+CASE_CATEGORIES = {**{category: category for category in CATEGORIES},
+                   '自然风光': '自然景观', '古镇': '古镇／历史街区'}
 STYLES = ['简洁', '活泼', '严肃']
 PURPOSES = ['种草推荐', '宣传科普', '游玩攻略', '活动宣传']
 AUDIENCES = ['一般游客', '亲子家庭', '学生／研学团体', '朋友结伴', '情侣']
@@ -106,8 +108,11 @@ def build_detailed_brief(*, name, category, style, purpose, audience, highlights
             details[key] = value
     order = [primary] + [x for x in selected if x != primary]
     chosen = [lookup[x] for x in order]
-    facts = list(data['facts']) if data else [dict(id='U00', text=introduction,
-            source='用户提供，未独立核验', provenance='user_supplied')] + list(highlights)
+    facts = list(data['facts']) if data else [
+        dict(id='U00', text=introduction, source='用户提供，未独立核验', provenance='user_supplied')
+    ]
+    known_ids = {fact['id'] for fact in facts}
+    facts.extend(h for h in highlights if h['id'] not in known_ids and h.get('provenance') != 'editorial_angle')
     extra_ids = []
     if supplement:
         facts.append(dict(id='SUP', text=supplement, source='用户补充，未独立核验', provenance='user_supplied'))
@@ -121,7 +126,8 @@ def build_detailed_brief(*, name, category, style, purpose, audience, highlights
         text_style=style, purpose=purpose, audience=audience, learning_stage=stage,
         visit_duration=duration, introduction=introduction, supplement=supplement, event=details,
         highlights=chosen, primary_fact_id=chosen[0]['id'], selected_fact_ids=[h['id'] for h in chosen],
-        used_fact_ids=([data['facts'][0]['id']] if data else ['U00']) + [h['id'] for h in chosen] + extra_ids,
+        used_fact_ids=([data['facts'][0]['id']] if data else ['U00']) +
+                      [h['id'] for h in chosen if h.get('provenance') != 'editorial_angle'] + extra_ids,
         facts=facts, boundaries=data['boundaries'] if data else ['用户提供资料尚未独立核验。'],
         reviewed_on=data['reviewed_on'] if data else '用户填写；未独立核验',
         unused_keywords=[], keywords=order, matched_keywords=order,

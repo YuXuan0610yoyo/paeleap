@@ -1,10 +1,10 @@
 """Offline image planning UI; all choices feed image_brief, no provider calls."""
-from platform_profiles import DEFAULT_PLATFORM, platform_label
+from platform_profiles import DEFAULT_PLATFORM, PLATFORM_PROFILES, platform_label
 import hashlib
 import streamlit as st
 from image_brief import VISUAL_STYLES, DEFAULTS, build_image_brief
 from xiaohongshu_templates import template_for, STYLE_IDS, ordered_photos, photo_plan
-from local_photo import decode_photo, clear_photo_if_removed, remove_photo
+from local_photo import adapt_photo, decode_photo, clear_photo_if_removed, remove_photo
 
 
 # Friendly choices map to complete visual instructions; hidden legacy controls are ignored.
@@ -15,7 +15,7 @@ MOODS = {
     'warm': ('温暖柔和', 'Warm & soft', {'light': 'golden', 'palette': 'warm'}),
     'calm': ('安静自然', 'Calm & natural', {'light': 'overcast', 'palette': 'natural'}),
 }
-SIZES = {'3:4': ('竖图 · 封面', 'Portrait · cover'), '1:1': ('方图 · 图文配图', 'Square · post'), '16:9': ('横图 · 宽幅展示', 'Landscape · wide')}
+SIZES = {'3:4': ('3:4 竖图', '3:4 Portrait'), '1:1': ('1:1 方图', '1:1 Square'), '16:9': ('16:9 横图', '16:9 Landscape')}
 
 def simple_selections(style, mood, ratio, has_photo=False, use_portrait=False):
     return {**DEFAULTS, **MOODS[mood][2], 'ratio': ratio,
@@ -49,6 +49,11 @@ def render_image_workspace(field, label, lang):
         st.info(label('Generate a caption first so the place and key details carry over.', '先生成文案，景点、推广重点和目标人群会自动带入。'))
         return
     st.caption(label('Draft platform: ', '草稿平台：') + platform_label(brief.get('platform', DEFAULT_PLATFORM), lang))
+    platform = brief.get('platform', DEFAULT_PLATFORM)
+    settings = result.get('image_settings', {})
+    if settings.get('platform') != platform:
+        st.session_state['form_image_ratio'] = PLATFORM_PROFILES[platform]['recommendations']['default_ratio']
+        st.session_state['form_image_fit'] = 'pad'
     subjects=list(dict.fromkeys(h['label'] for h in brief.get('highlights',[]) if h.get('label')))
     subjects=subjects or [brief['attraction']]
     context=brief['attraction']+'|'+str(brief.get('selected_fact_ids',[]))
@@ -76,9 +81,12 @@ def render_image_workspace(field, label, lang):
                 mood=field(st.selectbox,'image_mood','auto',label=label('What mood?','想要什么感觉？'),options=list(MOODS),format_func=lambda v:MOODS[v][lang_index])
             with b:
                 ratio=field(st.selectbox,'image_ratio','3:4',label=label('Image shape','图片尺寸'),options=list(SIZES),format_func=lambda v:SIZES[v][lang_index])
+            fit=field(st.radio,'image_fit','pad',label=label('Fit photos','图片适配方式'),options=['pad','crop'],
+                      format_func=lambda v: label('Add white space','留白') if v == 'pad' else label('Crop center','居中裁切'),horizontal=True)
+            result['image_settings'] = {'platform': platform, 'ratio': ratio, 'fit': fit}
             with st.expander(label('Add photos or a request (optional)','添加照片或补充想法（选填）')):
                 notes=field(st.text_area,'image_notes','',label=label('Anything else?','还有什么想法？'),placeholder=label('For example: leave room above for a title','例如：上方留一点空白，方便放标题'),max_chars=600,height=80)
-                st.caption(label('Add a place photo to guide its appearance. Photos stay unchanged in this demo.', '有景区照片可以加进来，方便保留真实样貌。本版只展示原图。'))
+                st.caption(label('Add photos and choose how they fit the selected shape.', '添加景区照片，并选择适配图片比例的方式。'))
                 photo_key=f"local_photo_{st.session_state.get('photo_epoch',0)}"
                 photos=st.file_uploader(label('Place photo / reference','景区照片／参考图'),type=['png','jpg','jpeg','webp'],key=photo_key,max_upload_size=20,accept_multiple_files=True,on_change=clear_photo_if_removed,args=(photo_key,))
                 records=[]
@@ -128,7 +136,9 @@ def render_image_workspace(field, label, lang):
                             st.error(label('Cannot read this portrait.', '无法读取人物照片。'))
                     if st.session_state.get('portrait_bytes'):
                         st.image(st.session_state['portrait_bytes'],width=150,caption=label('Portrait reference only','仅作人物参考'))
-        st.button(label('Generate image · coming later','生成图片 · 暂未开放'),key='generate_image',disabled=True,width='stretch')
+        st.button(label('Generate image', '生成图片'), key='generate_image', disabled=True, width='stretch',
+                  help=label('Image generation is unavailable. You can upload photos above.',
+                             '图片生成暂不可用，可在上方上传配图。'))
     choices=simple_selections(style,mood,ratio,result.get('image') is not None,use_portrait)
     with output:
         with st.container(border=True):
@@ -143,6 +153,10 @@ def render_image_workspace(field, label, lang):
                 st.write(chosen['visual'])
                 st.caption(label('Photo order follows caption highlights.', '配图按正文看点排序；只有一张照片就做单图笔记。'))
                 order=photo_plan(brief,result.get('photos',[]))
+                previews=ordered_photos(brief,result.get('photos',[]))
+                for photo in previews:
+                    st.image(adapt_photo(photo['image'], ratio, fit), width=220,
+                             caption=label('Adapted preview: ', '适配预览：') + photo['name'])
                 for item in order:
                     st.write(str(item['position'])+'. '+item['subject']+' · '+item['name'])
                 if not order:
@@ -152,7 +166,6 @@ def render_image_workspace(field, label, lang):
                 if use_portrait: st.caption(label('Your portrait is included as a reference.', '已带入人物照片作为参考。'))
                 if notes.strip(): st.write(label('Your request: ','你的想法：')+notes.strip())
                 st.caption(label('Composition, colors and styling are matched automatically. Your caption and audience carry over.', '构图、配色和质感会自动搭配，文案内容和目标人群也已带入。'))
-                st.info(label('Your choices are saved. Image generation is not connected yet; continue to Preview to review your caption and any uploaded photo.', '选择已保存。目前尚未接入图片生成，可以继续预览文案和上传的原图。'))
             except ValueError as exc:
                 result.pop('visual_brief',None)
                 st.info(str(exc))

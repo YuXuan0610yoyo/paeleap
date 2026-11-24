@@ -1,7 +1,19 @@
 """Translate display labels only; canonical brief values and user facts stay unchanged."""
 import streamlit as st
+from attraction_catalog import CATEGORY_TOPICS
+
 EN = {
+'请选择':'Select an option',
+'输入景点名称搜索':'Search for an attraction',
+'选择或输入推广重点':'Select or type highlights',
+'推广重点请控制在30字以内。':'Keep each highlight to 30 characters or fewer.',
+'乌镇东栅':'Wuzhen Dongzha','乌镇乌村':'Wuzhen Wucun',
+'浙江省博物馆之江馆区':'Zhejiang Provincial Museum, Zhijiang',
+'茅盾故居':'Mao Dun’s former residence','江南百床馆':'Jiangnan Hundred Beds Museum','宏源泰染坊':'Hongyuantai dyehouse',
+'田园风景':'Rural scenery','农事体验':'Farming experiences','运河村落':'Canal village',
+'浙江历史文化':'Zhejiang history and culture','讲解与导览':'Guided visits','参观安排':'Visit planning',
 '景区类型':'Attraction category','你想推广哪里？':'Which place are you promoting?',
+'景点':'Attraction','推广重点':'Highlights','选择1至3个值得重点推荐的内容。':'Choose 1–3 highlights to include.',
 '场所名称':'Place name','填写景点或场所名称':'Enter a place name',
 '场所简介':'Place introduction','写清场所是什么、有哪些已确认的特色。':'Describe the place and its confirmed features.',
 '候选亮点：一行一个“名称｜具体说明”':'Highlights: one “Name | Description” per line',
@@ -15,7 +27,7 @@ EN = {
 '会原样放入“补充信息”，请填真实信息，不要在此填写写作指令；语气与目的使用上面的选项。':'Included as supplied. Add verified facts here; use the tone and purpose controls for writing preferences.',
 '用于建议取舍看点，不会据此编造路线或承诺游览耗时。':'Used to prioritize highlights, not to invent routes or promise travel times.',
 '活动文案需要以下四项信息；仅使用你填写的内容。':'Event posts require all four details below. Only supplied details are used.',
-'这个场所暂无匹配资料，请补充简介与真实亮点。填写内容将直接用于离线文案，不会自动查询或核验。':'No saved facts for this place. Add an introduction and real highlights. Your facts are used as supplied, without automatic lookup or verification.',
+'请填写场所简介和已确认的亮点，文案将以这些资料为依据。':'Add an introduction and verified highlights to use in the caption.',
 '其他场所（填写资料）':'Other place (provide facts)',
 '自然景观':'Natural scenery','博物馆':'Museum','研学基地':'Educational site','古镇／历史街区':'Historic town / district','主题乐园':'Theme park',
 '简洁':'Concise','活泼':'Lively','严肃':'Formal','种草推荐':'Recommendation','宣传科普':'Educational introduction','游玩攻略':'Visit guide','活动宣传':'Event promotion',
@@ -23,13 +35,14 @@ EN = {
 '约1小时':'About one hour','不限定':'No preference','小学':'Primary school','初中':'Middle school','高中':'High school','大学及以上':'University and above','半天':'Half a day','一天':'One day','两小时以内':'Up to two hours',
 '乌镇西栅':'Wuzhen Xizha','杭州西湖':'West Lake, Hangzhou','杭州宋城':'Songcheng, Hangzhou',
 '水乡风景':'Waterside scenery','蓝印花布':'Blue printed cloth','老邮局':'Old post office','湖面山景':'Lake and mountain views','苏堤':'Su Causeway','白堤':'Bai Causeway','文化演艺':'Cultural performances','宋城千古情':'Songcheng Eternal Love','主题街区':'Themed streets',
-'请补充这个场所的简介，程序不会自动查询资料。':'Please add an introduction. This prototype does not look up facts automatically.',
+'请补充这个场所的简介，程序不会自动查询资料。':'Add a short introduction for this attraction.',
 '请填写景点名称（最多80字）。':'Enter a place name (up to 80 characters).',
 '请选择1至3个不同的推广重点。':'Choose 1–3 different highlights.',
 '主重点必须来自本次选择的推广重点。':'The main highlight must be one of your selected highlights.',
 '每条亮点请按“名称｜具体说明”填写，一行一条。':'Enter one “Name | Description” per line.',
 '亮点名称不能重复。':'Highlight names must be unique.'
 }
+EN.update({label: english for topics in CATEGORY_TOPICS.values() for label, english, _ in topics})
 
 class LocalizedFields:
     def __init__(self, language):

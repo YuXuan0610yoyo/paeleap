@@ -33,9 +33,10 @@ def test_primary_changes_title_paragraph_and_photo_order_without_duplication():
 
 def test_photo_state_survives_navigation_and_new_primary():
     a=AppTest.from_file('../app.py').run()
+    a.button(key='enter_studio').click().run()
     a.button(key='generate_caption').click().run()
     a.session_state['result']['photos']=[dict(digest='a',fact_id='F02',name='water.png',image=Image.new('RGB',(8,8))),dict(digest='b',fact_id='F03',name='cloth.png',image=Image.new('RGB',(8,8)))]
-    a.button(key='workflow_next').click().run()
+    a.radio(key='workspace').set_value('image').run()
     assert a.session_state['result']['template_id']=='ancient_town'
     assert a.radio(key='image_template').value=='heritage'
     a.button(key='workflow_next').click().run()

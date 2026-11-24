@@ -24,8 +24,11 @@ def has_draft_edits(result):
     return False
 
 
-def create_offline_preview(brief):
+def create_offline_preview(brief, *, wuzhen_demo=False):
     copy = generate_drafts(brief, mode='offline')
+    if wuzhen_demo:
+        from wuzhen_demo import prepare_caption
+        copy = prepare_caption(brief, copy)
     variants = [{**v, 'hashtags': copy['hashtags']} for v in copy['versions']]
     previous = st.session_state.get('result', {})
     if previous.get('text_plan') and previous['text_plan'].get('attraction') != brief['attraction']:
@@ -47,6 +50,7 @@ def create_offline_preview(brief):
         'copy_source': copy['copy_source'], 'template_id': copy.get('template_id'),
         'template_name': copy.get('template_name'), 'content_outline': copy.get('content_outline', [])}
     st.session_state['form_caption_variant'] = 0
+    st.session_state.pop('wuzhen_caption_platform', None)
     for i, variant in enumerate(variants):
         for part in ('title', 'caption', 'hashtags'):
             st.session_state[f'form_draft_{i}_{part}'] = ' '.join(variant[part]) if part == 'hashtags' else variant[part]

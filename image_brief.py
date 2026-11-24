@@ -41,7 +41,8 @@ def build_image_brief(brief, caption, style_id='natural', *, selections=None, su
     if len(subject)>160 or len(notes)>600: raise ValueError('主体最多160字，补充要求最多600字。 / Input is too long.')
     style=VISUAL_STYLES[style_id]
     highlights=brief.get('highlights',[])
-    facts=[{'id':h.get('id',''), 'text':h.get('text',''), 'source':h.get('source','用户填写，未独立核验')} for h in highlights]
+    facts=[{'id':h.get('id',''), 'text':h.get('text',''), 'source':h.get('source','用户填写，未独立核验')}
+           for h in highlights if h.get('provenance') != 'editorial_angle']
     # Content stays quoted data; caption edits never supersede factual constraints.
     content=dict(platform=brief.get('platform', DEFAULT_PLATFORM),attraction=brief['attraction'],category=brief.get('category',''),purpose=brief.get('purpose',''),audience=brief.get('audience',''),subject=subject,
                  selected_highlights=[h.get('label','') for h in highlights],facts=facts,caption=caption,extra_requirements=notes,

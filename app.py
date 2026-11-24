@@ -2,12 +2,10 @@
 import json
 import os
 import time
-from html import escape
 from pathlib import Path
 
 import streamlit as st
 from dotenv import load_dotenv
-from ui_banner import render_gallery
 from ui_workspaces import render_navigation
 from ui_results import render_results
 from local_photo import decode_photo, clear_photo_if_removed, remove_photo
@@ -15,12 +13,14 @@ from input_fields import render_input_fields
 from platform_profiles import DEFAULT_PLATFORM, platform_label
 from offline_studio import preserve_inputs, has_draft_edits, create_offline_preview
 from studio_state import save_caption_output, retain_legacy_plans
+import wuzhen_demo
 from engine import (CATEGORY_CONFIG, DESTINATIONS, STYLES, plan, recommend_style,
                     generate_caption_variants, generate_cloudflare_image, video_plans,
                     render_slideshow, save_output, safe_error)
 
 load_dotenv(dotenv_path=Path(__file__).resolve().parent / '.env', override=False)
 st.set_page_config(page_title='PAELEAP | Creator Studio', page_icon='✦', layout='wide', initial_sidebar_state='collapsed')
+demo_mode = st.query_params.get('demo') == 'wuzhen'
 
 COPY = {'English': {'eyebrow': 'A LITTLE WANDER. A GREAT STORY.',
              'headline': 'Turn places into stories.',
@@ -49,11 +49,9 @@ COPY = {'English': {'eyebrow': 'A LITTLE WANDER. A GREAT STORY.',
              'tag1': 'DISCOVER',
              'tag2': 'CREATE',
              'tag3': 'REFINE',
-             'notice': 'Research-based concept only. Generated images are illustrative, not on-location '
-                       'photographs; review claims before publishing.',
              'image': 'AI concept image — not a real photograph',
-             'download_image': '↓  Download image',
-             'download_copy': '↓  Save caption',
+             'download_image': 'Download image',
+             'download_copy': 'Save caption',
              'download_json': '↓  Download JSON',
              'review': 'Quality review',
              'review_note': 'Review landmark accuracy, travel claims and any generated text before '
@@ -91,10 +89,9 @@ COPY = {'English': {'eyebrow': 'A LITTLE WANDER. A GREAT STORY.',
         'tag1': '发现',
         'tag2': '创作',
         'tag3': '优化',
-        'notice': '本原型仅用于研究测试；生成图片不是现场实拍，发布前必须人工核实事实。',
         'image': 'AI 概念图片 — 非现场实拍',
-        'download_image': '↓  下载图片',
-        'download_copy': '↓  下载文案',
+        'download_image': '下载图片',
+        'download_copy': '下载文案',
         'download_json': '↓  下载 JSON',
         'review': '内容质量检查',
         'review_note': '发布前请检查地标外观、旅行信息及生成文字。图片和视频均为概念示意。',
@@ -158,21 +155,48 @@ def change_language():
         st.session_state['form_audience'] = COPY[lang]['audience_default']
 
 
+def return_home():
+    st.session_state.pop('wuzhen_published_platform', None)
+    st.session_state['show_studio'] = False
+
+
 theme_type = getattr(getattr(st.context, 'theme', None), 'type', None) or st.get_option('theme.base') or 'light'
 if theme_type == 'dark':
     st.markdown('<span class="studio-theme-dark" aria-hidden="true" style="display:none"></span>', unsafe_allow_html=True)
 st.markdown('<style>' + (Path(__file__).parent / 'studio.css').read_text() + (Path(__file__).parent / 'workflow.css').read_text() + '</style>', unsafe_allow_html=True)
-bar_left, bar_right = st.columns([5, 1.3], vertical_alignment='center')
-with bar_left:
-    header_cn = st.session_state.get('language', 'English') == '中文'
-    subtitle = '创作值得分享的视觉故事。' if header_cn else 'Create visual stories worth sharing.'
-    st.markdown('<div class="studio-header"><div class="brand"><span>＊</span> PAELEAP STUDIO</div>'
-                f'<div class="brand-subtitle">{subtitle}</div></div>', unsafe_allow_html=True)
-with bar_right:
-    # A native single-choice radio styled as segments cannot be toggled into an empty state.
-    lang = st.radio('EN | 中文',
-        ['English', '中文'], format_func=lambda value: 'EN' if value == 'English' else '中文',
-        horizontal=True, key='language', label_visibility='collapsed', on_change=change_language)
+# Keep the in-progress inputs and the current workspace when its widgets are
+# temporarily hidden on the welcome screen.
+preserve_inputs()
+if 'workspace' in st.session_state:
+    st.session_state['workspace'] = st.session_state['workspace']
+if not st.session_state.get('show_studio', False):
+    from landing import render_landing
+    render_landing(change_language)
+    st.stop()
+from landing import asset_data
+platform_icon_css = ''.join(
+    '--platform-' + name + ':url("' + asset_data('assets/platform-icons/' + filename) + '");'
+    for name, filename in (('xiaohongshu', 'xiaohongshu.svg'),
+                           ('douyin', 'douyin-note.svg'), ('weibo', 'weibo.svg'))
+)
+st.markdown('<style>' + (Path(__file__).parent / 'creator.css').read_text() +
+            (Path(__file__).parent / 'flow.css').read_text() +
+            'body{' + platform_icon_css + '}' +
+            '.st-key-home_logo button {background-image:url("' + asset_data('assets/paeleap-logo.webp') +
+            '") !important;}</style>', unsafe_allow_html=True)
+with st.container(key='creator_header'):
+    bar_left, bar_right = st.columns([4, 1], gap='small', vertical_alignment='center')
+    with bar_left:
+        header_cn = st.session_state.get('language', '中文') == '中文'
+        product_name = '文旅社媒内容创作工具' if header_cn else 'Tourism content studio'
+        with st.container(key='creator_brand', horizontal=True, vertical_alignment='center', gap='small'):
+            st.button('返回首页' if header_cn else 'Return home', key='home_logo', on_click=return_home,
+                      help='返回首页' if header_cn else 'Return home')
+            st.markdown('<div class="creator-brand-name">' + product_name + '</div>', unsafe_allow_html=True)
+    with bar_right:
+        lang = st.radio('EN | 中文',
+            ['English', '中文'], format_func=lambda value: 'EN' if value == 'English' else '中文',
+            horizontal=True, key='language', label_visibility='collapsed', on_change=change_language)
 COPY['English']['prompt'] = 'Image prompt'
 COPY['中文']['prompt'] = '图片提示词'
 t = COPY[lang]
@@ -183,83 +207,119 @@ def label(en, zh):
     return zh if cn else en
 
 
-render_gallery(t, lang)
+def go_to(step):
+    st.session_state['next_workspace'] = step
+
+
+def complete_demo_publish(platform):
+    st.session_state['wuzhen_published_platform'] = platform
+
+
+published_platform = st.session_state.get('wuzhen_published_platform')
+if demo_mode and published_platform:
+    platform_name = platform_label(published_platform, lang)
+    with st.container(key='wuzhen_publish_page', horizontal_alignment='center'):
+        with st.container(key='wuzhen_publish_receipt', border=True, width=480,
+                          horizontal_alignment='center'):
+            st.markdown('<span class="wuzhen-publish-check" aria-hidden="true">✓</span>',
+                        unsafe_allow_html=True)
+            st.markdown('## ' + label('Publish successful', '发布成功'))
+            st.caption(label('Demo · Simulated publishing to {platform}.',
+                             '演示模式 · 已模拟发布到{platform}。').format(platform=platform_name))
+            st.button(label('Return home', '返回首页'), key='wuzhen_publish_home',
+                      on_click=return_home, type='primary', width=220)
+    st.stop()
+
+
 if 'next_workspace' in st.session_state:
     st.session_state['workspace'] = st.session_state.pop('next_workspace')
 st.session_state['workspace'] = st.session_state.get('workspace', 'text')
 workspace = render_navigation(cn)
 if 'result' in st.session_state:
     retain_legacy_plans(st.session_state['result'])
-preserve_inputs()
 selected_platform = st.session_state.get('platform', DEFAULT_PLATFORM)
 saved_plan = st.session_state.get('result', {}).get('text_plan', {})
+demo_draft = demo_mode and saved_plan.get('attraction') == wuzhen_demo.WUZHEN
 if saved_plan and saved_plan.get('platform', DEFAULT_PLATFORM) != selected_platform:
     st.warning(label(
         'Platform changed. Your saved draft is still for ' + platform_label(saved_plan.get('platform', DEFAULT_PLATFORM), lang) + '. Return to Caption and generate again to update it; your edits are kept.',
         '发布平台已改变，当前草稿仍属于' + platform_label(saved_plan.get('platform', DEFAULT_PLATFORM), lang) + '。请回文案页重新生成；手动修改会保留。'))
 if workspace == 'text':
-    st.markdown(f'<div class="heading-box"><div class="panel-title"><span>01</span>{escape(t["workspace"])}</div><div class="panel-sub">{escape(t["workspace_sub"])}</div></div>', unsafe_allow_html=True)
-    input_column, result_column = st.columns([1.05, 1], gap='medium')
-    # Reserve one shared action row below both panels. Populate it as each
-    # action becomes available, without placing buttons in separate rows.
-    with st.container(key='caption_actions'):
-        generate_column, photo_column = st.columns([1.05, 1], gap='medium')
+    input_column, result_column = st.columns(2, gap='medium')
     with input_column:
         with st.container(border=True, key='brief_card'):
-            st.caption(label('Offline preview: captions remain in Chinese. No AI API calls.', '离线预览：选项会影响文案，不调用 AI 接口。'))
-            brief = render_input_fields(lang)
-        if st.session_state.get('pending_offline_brief') != brief:
-            st.session_state.pop('pending_offline_brief', None)
-        previous = st.session_state.get('result', {})
-        if previous.get('text_plan') and brief != {'platform': DEFAULT_PLATFORM, **{k: v for k, v in previous['text_plan'].items() if k != 'language'}}:
-            st.info(label('Inputs changed. Generate again to update the saved draft.', '输入已改变，当前结果仍保留旧文案；点击生成更新。'))
-        if generate_column.button(t['generate'], key='generate_caption', type='primary', width='stretch', disabled=brief is None):
-            if has_draft_edits(previous):
-                st.session_state['pending_offline_brief'] = brief
-            else:
-                try:
-                    create_offline_preview(brief)
-                    st.rerun()
-                except Exception as exc:
-                    st.error(safe_error(exc, lang))
-        if st.session_state.get('pending_offline_brief'):
-            st.warning(label('You edited the preview. Replace those edits with new drafts?', '预览中有手动修改，重新生成会替换这些修改。'))
-            keep, replace = st.columns(2)
-            if keep.button(label('Keep edits', '保留修改'), key='keep_offline_edits'):
+            brief = render_input_fields(lang, start_blank=demo_mode)
+            if st.session_state.get('pending_offline_brief') != brief:
                 st.session_state.pop('pending_offline_brief', None)
-                st.rerun()
-            if replace.button(label('Replace and generate', '替换并生成'), key='replace_offline_edits'):
-                try:
-                    create_offline_preview(st.session_state['pending_offline_brief'])
+            previous = st.session_state.get('result', {})
+            if previous.get('text_plan') and brief != {'platform': DEFAULT_PLATFORM, **{k: v for k, v in previous['text_plan'].items() if k != 'language'}}:
+                st.info(label('Inputs changed. Generate again to update the saved draft.', '输入已改变，当前结果仍保留旧文案；点击生成更新。'))
+            with st.container(key='caption_actions'):
+                if st.button(t['generate'], key='generate_caption', type='primary', width='stretch', disabled=brief is None):
+                    if has_draft_edits(previous):
+                        st.session_state['pending_offline_brief'] = brief
+                    else:
+                        try:
+                            create_offline_preview(brief, wuzhen_demo=demo_mode)
+                            st.rerun()
+                        except Exception as exc:
+                            st.error(safe_error(exc, lang))
+            if st.session_state.get('pending_offline_brief'):
+                st.warning(label('You edited the preview. Replace those edits with new drafts?', '预览中有手动修改，重新生成会替换这些修改。'))
+                keep, replace = st.columns(2)
+                if keep.button(label('Keep edits', '保留修改'), key='keep_offline_edits'):
+                    st.session_state.pop('pending_offline_brief', None)
                     st.rerun()
-                except Exception as exc:
-                    st.error(safe_error(exc, lang))
+                if replace.button(label('Replace and generate', '替换并生成'), key='replace_offline_edits'):
+                    try:
+                        create_offline_preview(st.session_state['pending_offline_brief'], wuzhen_demo=demo_mode)
+                        st.rerun()
+                    except Exception as exc:
+                        st.error(safe_error(exc, lang))
     with result_column:
-        with st.container(border=True, key="copy_results_card"):
-            render_results(workspace, field, label, t, lang)
+        with st.container(border=True, key='copy_results_card', height='stretch'):
+            result = st.session_state.get('result', {})
+            if demo_draft and result.get('variants'):
+                wuzhen_demo.render_caption_result(result, field, label, lang, go_to)
+            else:
+                render_results(workspace, field, label, t, lang)
+                if result.get('variants'):
+                    st.button(label('Next: Image', '下一步：配图'), key='caption_to_image',
+                              on_click=go_to, args=('image',), width='stretch')
 
 if workspace == 'image':
-    from image_workspace import render_image_workspace
-    render_image_workspace(field, label, lang)
+    if demo_draft:
+        image_ready = wuzhen_demo.render_image_workspace(st.session_state['result'], label, lang)
+    else:
+        from image_workspace import render_image_workspace
+        render_image_workspace(field, label, lang)
+        image_ready = st.session_state.get('result', {}).get('image') is not None
 
 if workspace == 'preview':
-    with st.container(border=False):
-        render_results(workspace, field, label, t, lang)
+    if demo_draft:
+        wuzhen_demo.render_post(st.session_state['result'], label, lang)
+    else:
+        with st.container(border=False):
+            render_results(workspace, field, label, t, lang)
 
-def go_to(step):
-    st.session_state['next_workspace'] = step
-
-has_copy = bool(st.session_state.get('result', {}).get('variants'))
-if workspace == 'text':
-    photo_column.button(label('Next: Photo →', '下一步：配图 →'), key='workflow_next', disabled=not has_copy, on_click=go_to, args=('image',), type='primary', width='stretch')
-else:
+result = st.session_state.get('result', {})
+has_copy = bool(result.get('variants'))
+if workspace != 'text':
     with st.container(key='workflow_actions'):
         back_col, next_col = st.columns(2)
         with back_col:
-            st.button(label('← Back', '← 上一步'), key='workflow_back', on_click=go_to, args=('text' if workspace == 'image' else 'image',), width='stretch')
+            st.button(label('Back', '上一步'), key='workflow_back', on_click=go_to, args=('text' if workspace == 'image' else 'image',), width='stretch')
         with next_col:
             if workspace == 'image':
-                st.button((label('Next: Preview →', '下一步：预览 →') if st.session_state.get('result', {}).get('image') is not None else label('Continue without image →', '暂不配图，下一步：预览 →')), key='workflow_next', disabled=not has_copy, on_click=go_to, args=('preview',), type='primary', width='stretch')
-            else:
-                st.caption(label('Edit and download your finished draft above.', '在上方确认、修改并下载文案，完成本次创作。'))
-st.markdown('<div class="footer"><span>PAELEAP STUDIO / ' + label('MADE FOR EXPLORING', '为探索而生') + '</span><span>' + escape(t['notice']) + '</span></div>', unsafe_allow_html=True)
+                next_label = (
+                    label('Next: Preview', '下一步：预览') if demo_draft or image_ready
+                    else label('Continue without image', '暂不配图，下一步：预览')
+                )
+                st.button(next_label, key='workflow_next',
+                          disabled=not has_copy or (demo_draft and not image_ready),
+                          on_click=go_to, args=('preview',), type='primary', width='stretch')
+            elif workspace == 'preview' and demo_draft:
+                st.button(label('Publish', '一键发布'), key='wuzhen_publish',
+                          disabled=not has_copy or result.get('image') is None,
+                          on_click=complete_demo_publish, args=(saved_plan['platform'],),
+                          type='primary', width='stretch')

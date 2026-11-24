@@ -3,6 +3,18 @@ from io import BytesIO
 from PIL import Image, ImageOps, UnidentifiedImageError
 import streamlit as st
 
+IMAGE_SIZES = {'3:4': (1080, 1440), '1:1': (1080, 1080), '16:9': (1440, 810)}
+
+
+def adapt_photo(image, ratio, method):
+    """Fit a copy of an uploaded photo to the same pixels used for preview and export."""
+    size = IMAGE_SIZES[ratio]
+    if method == 'crop':
+        return ImageOps.fit(image.convert('RGB'), size, method=Image.Resampling.LANCZOS)
+    if method == 'pad':
+        return ImageOps.pad(image.convert('RGB'), size, method=Image.Resampling.LANCZOS, color='white')
+    raise ValueError('Unknown image fitting method')
+
 
 def decode_photo(data):
     if len(data) > 20 * 1024 * 1024:
